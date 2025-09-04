@@ -51,6 +51,7 @@ ios/Flutter/Flutter.podspec
 ios/.symlinks/
 ios/Flutter/Generated.xcconfig
 ios/Flutter/ephemeral/
+ios/*
 
 # Android
 android/.gradle/
@@ -58,16 +59,20 @@ android/app/build/
 android/local.properties
 android/gradle/
 android/key.properties
+android/*
 
 # macOS
 macos/Flutter/ephemeral/
 macos/Pods/
+macos/*
 
 # Windows
 windows/flutter/ephemeral/
+windows/*
 
 # Linux
 linux/flutter/ephemeral/
+linux/*
 
 # Web
 web/.dart_tool/
