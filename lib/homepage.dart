@@ -5,6 +5,7 @@ import 'package:pokedex/main.dart';
 import 'package:http/http.dart' as http;
 import 'package:pokedex/models/pokemonModel.dart';
 import 'package:pokedex/pokemonDetailPage.dart';
+import 'package:pokedex/favorites_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -51,7 +52,7 @@ class _HomePageState extends State<HomePage> {
                 "Pokedex App",
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 16), // Adding spacing between elements
+              SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
@@ -63,14 +64,24 @@ class _HomePageState extends State<HomePage> {
                     ),
                   ),
 
-                  SizedBox(width: 8), // Adding spacing between elements
+                  SizedBox(width: 8),
 
                   IconButton(icon: Icon(Icons.search), onPressed: () {}),
                 ],
               ),
 
-              SizedBox(height: 16), // Adding spacing between elements
-
+              SizedBox(height: 16),
+              ElevatedButton.icon(
+                icon: Icon(Icons.favorite),
+                label: Text("Ver Favoritos"),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => FavoritesPage()),
+                  );
+                },
+              ),
+              SizedBox(height: 16),
               Expanded(
                 child: ListView.builder(
                   itemCount: pokemonList.length,
@@ -88,7 +99,7 @@ class _HomePageState extends State<HomePage> {
                       child: Padding(
                         padding: EdgeInsets.all(8.0),
                         child: Text(
-                          pokemon.Name, // use lowerCamelCase if it's a Dart field
+                          pokemon.Name,
                           style: TextStyle(fontSize: 18),
                         ),
                       ),
