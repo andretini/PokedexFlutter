@@ -1,5 +1,5 @@
-import 'dart:convert';
 
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:pokedex/main.dart';
 import 'package:http/http.dart' as http;
@@ -15,99 +15,138 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<PokemonListResult> pokemonList = [];
+  // 1. Criamos uma variável Future que guardará o resultado da nossa busca na API.
+  late Future<List<PokemonListResult>> _pokemonListFuture;
 
-  void fetchPokemons() async {
+  // 2. Modificamos a função para que ela RETORNE um Future com a lista de Pokémon.
+  Future<List<PokemonListResult>> fetchPokemons() async {
     final url = Uri.parse(api + 'pokemon?limit=100');
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      setState(() {
-        pokemonList = (data['results'] as List)
-            .map((pokemon) => PokemonListResult.fromJson(pokemon))
-            .toList();
-      });
+      // O 'return' envia os dados para o FutureBuilder.
+      return (data['results'] as List)
+          .map((pokemon) => PokemonListResult.fromJson(pokemon))
+          .toList();
     } else {
-      throw Exception('Failed to load Pokemon');
+      // Se der erro, lançamos uma exceção que o FutureBuilder vai capturar.
+      throw Exception('Falha ao carregar a lista de Pokémon');
     }
+  }
+
+  // Função para tentar recarregar os dados em caso de erro.
+  void _retryFetch() {
+    setState(() {
+      _pokemonListFuture = fetchPokemons();
+    });
   }
 
   @override
   void initState() {
     super.initState();
-    fetchPokemons();
+    // 3. No initState, nós iniciamos a busca e atribuímos o Future à nossa variável.
+    _pokemonListFuture = fetchPokemons();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Pokédex'),
+      ),
       body: Center(
         child: Padding(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Text(
-                "Pokedex App",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 16),
               Row(
                 children: [
-                  Expanded(
+                  const Expanded(
                     child: TextField(
                       decoration: InputDecoration(
                         border: OutlineInputBorder(),
-                        labelText: 'Search by Pokemon Name',
+                        labelText: 'Buscar Pokémon',
                       ),
                     ),
                   ),
-
-                  SizedBox(width: 8),
-
-                  IconButton(icon: Icon(Icons.search), onPressed: () {}),
+                  const SizedBox(width: 8),
+                  IconButton(icon: const Icon(Icons.search), onPressed: () {}),
                 ],
               ),
-
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               ElevatedButton.icon(
-                icon: Icon(Icons.favorite),
-                label: Text("Ver Favoritos"),
+                icon: const Icon(Icons.favorite),
+                label: const Text("Ver Favoritos"),
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => FavoritesPage()),
+                    MaterialPageRoute(builder: (context) => const FavoritesPage()),
                   );
                 },
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
+              // 4. A lista agora é construída pelo FutureBuilder.
               Expanded(
-                child: ListView.builder(
-                  itemCount: pokemonList.length,
-                  itemBuilder: (context, index) {
-                    final pokemon = pokemonList[index];
-                    return InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => PokemonDetailPage(pokemonInfo: pokemon),
-                          ),
-                        );
-                      },
-                      child: Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Text(
-                          pokemon.Name,
-                          style: TextStyle(fontSize: 18),
+                child: FutureBuilder<List<PokemonListResult>>(
+                  future: _pokemonListFuture,
+                  builder: (context, snapshot) {
+                    // **ESTADO DE CARREGAMENTO**
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    // **ESTADO DE ERRO**
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text('Ocorreu um erro ao buscar os dados.'),
+                            const SizedBox(height: 10),
+                            ElevatedButton(
+                              onPressed: _retryFetch,
+                              child: const Text('Tentar Novamente'),
+                            )
+                          ],
                         ),
-                      ),
-                    );
+                      );
+                    }
+
+                    // **ESTADO DE SUCESSO**
+                    if (snapshot.hasData) {
+                      final pokemonList = snapshot.data!;
+                      return ListView.builder(
+                        itemCount: pokemonList.length,
+                        itemBuilder: (context, index) {
+                          final pokemon = pokemonList[index];
+                          return InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PokemonDetailPage(pokemonInfo: pokemon),
+                                ),
+                              );
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                pokemon.Name,
+                                style: const TextStyle(fontSize: 18),
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    }
+
+                    // Estado inicial ou caso não tenha dados (pouco provável de acontecer)
+                    return const Center(child: Text('Nenhum Pokémon encontrado.'));
                   },
                 ),
               )
-              
             ],
           ),
         ),
