@@ -20,7 +20,7 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> {
   Pokemon? pokemon;
 
   void fetchPokemon() async {
-    final url = Uri.parse(api + 'pokemon/' + widget.pokemonInfo.Name.toLowerCase());
+    final url = Uri.parse('${api}/pokemon/${widget.pokemonInfo.Name.toLowerCase()}');
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
@@ -77,7 +77,9 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              // Sprite
               Image.network(
                 pokemon!.sprites.front_default ?? '',
                 height: 200,
@@ -86,27 +88,66 @@ class _PokemonDetailPageState extends State<PokemonDetailPage> {
                   return const Icon(Icons.error, size: 100);
                 },
               ),
+
               const SizedBox(height: 16),
+
+              // Nome e número da Pokédex
               Text(
                 pokemon!.name.toUpperCase(),
-                style: const TextStyle(
-                    fontSize: 24, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
               ),
+              if (pokemon!.id != null) // id vem da própria resposta do endpoint
+                Text(
+                  "#${pokemon!.id.toString()}",
+                  style: const TextStyle(fontSize: 16, color: Colors.grey),
+                ),
+
               const SizedBox(height: 16),
+
+              // Altura e peso
               Text("Altura: ${pokemon!.height / 10} m"),
               Text("Peso: ${pokemon!.weight / 10} kg"),
+
               const SizedBox(height: 16),
-              const Text(
-                "Tipos:",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+
+              // Tipos
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Tipos:",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
               ),
+              const SizedBox(height: 8),
               Wrap(
                 spacing: 8.0,
+                runSpacing: 8.0,
                 children: pokemon!.types
-                    .map((typeInfo) => Chip(
-                  label: Text(typeInfo.type.name),
-                ))
+                    .map((t) => Chip(label: Text(t.type.name)))
                     .toList(),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Habilidades
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Habilidades:",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8.0,
+                runSpacing: 8.0,
+                children: pokemon!.abilities.map((a) {
+                  // OBS: ajuste o nome do campo de "is_hidden" para "isHidden" se seu model usar camelCase.
+                  final bool isHidden = (a.is_hidden == true) || (a.is_hidden == true);
+                  final label = isHidden ? '${a.ability?.name} (Oculta)' : a.ability?.name;
+                  return Chip(label: Text(label!));
+                }).toList(),
               ),
             ],
           ),
