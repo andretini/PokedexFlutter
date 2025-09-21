@@ -2,7 +2,7 @@
 
 A new Flutter project.
 
-##Equipe:
+## Equipe:
 
 - André Alija Ramos Agostini
 - Diego Henrick Candido da Silva
