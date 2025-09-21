@@ -3,7 +3,7 @@ import 'package:pokedex/homepage.dart';
 import 'package:pokedex/providers/favorites_provider.dart';
 import 'package:provider/provider.dart';
 
-const api = "https://pokeapi.co/api/v2/";
+const api = "https://pokeapi.co/api/v2";
 
 void main() {
   runApp(
